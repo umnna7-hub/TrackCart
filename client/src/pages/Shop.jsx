@@ -56,9 +56,13 @@ export default function Shop() {
 
   const products = useMemo(() => {
     let result = allProducts.filter((product) => {
-      const matchesCategory =
-        category === "All" ||
-        product.category === category;
+     
+const matchesCategory =
+  category === "All" ||
+  (category === "Vintage"
+    ? product.name.toLowerCase().includes("vintage")
+    : product.category === category);
+
 
       const matchesSearch = product.name
         .toLowerCase()

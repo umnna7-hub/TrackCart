@@ -96,10 +96,15 @@ export default function OrderConfirmation() {
           <Truck className="size-5" />
           <div className="flex-1">
             <p className="text-xs text-muted-foreground">Tracking PIN</p>
-            <p className="mt-1 font-medium tracking-widest">{order.trackingPin}</p>
+            <p className="mt-1 font-medium tracking-widest">
+  {order.trackingPin || order.trackingId || "Not available"}
+</p>
           </div>
-          <button type="button" onClick={() => copyValue(order.trackingPin)} aria-label="Copy tracking PIN">
-            <Copy size={17} />
+        <button
+  type="button"
+  onClick={() => copyValue(order.trackingPin || order.trackingId)}
+  aria-label="Copy tracking reference"
+>
           </button>
         </div>
 
@@ -114,9 +119,18 @@ export default function OrderConfirmation() {
           </div>
           <div className="mt-3 flex justify-between gap-4">
             <span className="text-muted-foreground">Expected delivery</span>
-            <span>
-              {new Date(order.expectedDelivery).toLocaleDateString()}
-            </span>
+     
+<span>
+  {order.expectedDelivery &&
+  !Number.isNaN(new Date(order.expectedDelivery).getTime())
+    ? new Date(order.expectedDelivery).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "To be confirmed"}
+</span>
+
           </div>
         </div>
       </section>

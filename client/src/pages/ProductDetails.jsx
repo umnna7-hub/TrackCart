@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
-import mockProducts  from "../data/mockProducts";
+import { getProducts } from "../services/productService";
 import { useCart } from "../context/CartContext";
 import { ProductGrid } from "../components/products";
 
@@ -10,9 +10,32 @@ export default function ProductDetails() {
   const { id } = useParams();
   const { addItem } = useCart();
 
-  const product = mockProducts.find(
-    (item) => String(item.id) === String(id)
-  );
+  const [products, setProducts] = useState([]);
+const [loading, setLoading] = useState(true);
+const [loadError, setLoadError] = useState(false);
+
+useEffect(() => {
+  let active = true;
+
+  getProducts()
+    .then((data) => {
+      if (active) setProducts(data);
+    })
+    .catch(() => {
+      if (active) setLoadError(true);
+    })
+    .finally(() => {
+      if (active) setLoading(false);
+    });
+
+  return () => {
+    active = false;
+  };
+}, []);
+
+const product = products.find(
+  (item) => String(item.id) === String(id)
+);
 
   const images = useMemo(() => {
     if (!product) return [];
@@ -94,14 +117,25 @@ export default function ProductDetails() {
       setFeedback("Unable to add this product. Please try again.");
     }
   };
-
+if (loading) {
+  return (
+    <main className="mx-auto max-w-7xl px-6 py-20">
+      <p className="text-muted-foreground">Loading product...</p>
+    </main>
+  );
+}
   if (!product) {
     return (
       <main className="mx-auto max-w-7xl px-6 py-20">
-        <h1 className="text-2xl font-semibold">Product not found</h1>
-        <p className="mt-3 text-muted-foreground">
-          This product may have been removed or the link may be incorrect.
-        </p>
+        <h1 className="text-2xl font-semibold">
+  {loadError ? "Unable to load product" : "Product not found"}
+</h1>
+
+<p className="mt-3 text-muted-foreground">
+  {loadError
+    ? "Please check that the backend server is running and try again."
+    : "This product may have been removed or the link may be incorrect."}
+</p>
         <Link
           to="/shop"
           className="mt-6 inline-flex items-center gap-2 underline underline-offset-4"
@@ -361,13 +395,14 @@ export default function ProductDetails() {
             </Link>
           </div>
 
-          <ProductGrid
-            products={mockProducts
-              .filter((item) => String(item.id) !== String(product.id))
-              .slice(0, 4)}
-            columns={4}
-            gap={6}
-          />
+         <ProductGrid
+  products={products
+    .filter((item) => String(item.id) !== String(product.id))
+    .slice(0, 4)}
+  columns={4}
+  gap={6}
+/>
+          
         </section>
 
     </main>
